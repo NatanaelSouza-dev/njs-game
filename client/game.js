@@ -643,8 +643,8 @@ try {
       L: createSmoothDict(),
       R: createSmoothDict()
     };
-    const headSm = { ox: new OneEuroFilter(30, 0.12, 0.003), oy: new OneEuroFilter(30, 0.12, 0.003), roll: new OneEuroFilter(30, 0.4, 0.008) };
-    const bodySm = { ox: new OneEuroFilter(30, 0.12, 0.003), ow: new OneEuroFilter(30, 0.12, 0.003) };
+    const headSm = { ox: new OneEuroFilter(30, 0.16, 0.003), oy: new OneEuroFilter(30, 0.16, 0.003), roll: new OneEuroFilter(30, 0.4, 0.008) };
+    const bodySm = { ox: new OneEuroFilter(30, 0.16, 0.003), ow: new OneEuroFilter(30, 0.2, 0.005) };
     const rollSamples = [];
     const eyeMidSamples = [];
     const eyeMidYSamples = [];
@@ -661,8 +661,8 @@ try {
     // a posição atual vira a nova "base" — o centro é o MONITOR (olhar reto
     // para a tela), não o centro da imagem da câmera.
     const REST_WINDOW = 30;
-    const REST_FRAMES = 30;
-    const REST_COOLDOWN = 45;
+    const REST_FRAMES = 60; // recentra a base só após ~2s parado (não apaga a aproximação/afastamento rápido)
+    const REST_COOLDOWN = 90;
     const REST_VAR_X = 2e-4;
     const REST_VAR_Y = 3e-4;
     const REST_VAR_W = 5e-4;
@@ -1174,22 +1174,6 @@ try {
             headSm.ox.x_prev = 0;
             headSm.oy.x_prev = 0;
             if (headSm.roll.x_prev !== null) rollBase = headSm.roll.x_prev;
-          if (!isGameStarted) {
-            bodyXBase = bx.mean;
-            bodyWBase = bw.mean;
-            bodySm.ox.x_prev = 0;
-            bodySm.ow.x_prev = 0;
-            if (haveEyeWin) {
-              eyeCxBase = ex.mean;
-              eyeCyBase = ey.mean;
-              headSm.ox.x_prev = 0;
-              headSm.oy.x_prev = 0;
-              if (headSm.roll.x_prev !== null) rollBase = headSm.roll.x_prev;
-            }
-            restFrames = 0;
-            restCooldown = REST_COOLDOWN;
-          } else {
-            restFrames = 0;
           }
           restFrames = 0;
           restCooldown = REST_COOLDOWN;
@@ -1214,8 +1198,6 @@ try {
         camCtx.fill();
       });
     }
-
-    } // fim de onPoseResults — todo o setup (UI, câmera, botões) roda no escopo top-level
 
     // --- MÃOS (MediaPipe Hands): dedos seguem as pontas dos dedos reais ---
     function assignHand(handLm) {
@@ -1249,8 +1231,8 @@ try {
     const YAW_SENS = 6.5;
     const PITCH_SENS = 3.0;
     const ROLL_SENS = 2.2;
-    const TRANS_SENS = 3.0;
-    const DEPTH_SENS = 1.9;
+    const TRANS_SENS = 3.4;
+    const DEPTH_SENS = 2.6;
     // --- INICIALIZAÇÃO DO POSE E MODAL ---
     let isGameStarted = false;
     let isFightActive = false;

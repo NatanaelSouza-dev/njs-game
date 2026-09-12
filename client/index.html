@@ -1,694 +1,89 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Virtual Boxing Game</title>
-  <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="style.css">
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Welcome to Firebase Hosting</title>
 
-  <!-- Three.js + MediaPipe -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+    <!-- update the version number as needed -->
+    <script defer src="/__/firebase/12.19.0/firebase-app-compat.js"></script>
+    <!-- include only the Firebase features as you need -->
+    <script defer src="/__/firebase/12.19.0/firebase-auth-compat.js"></script>
+    <script defer src="/__/firebase/12.19.0/firebase-database-compat.js"></script>
+    <script defer src="/__/firebase/12.19.0/firebase-firestore-compat.js"></script>
+    <script defer src="/__/firebase/12.19.0/firebase-functions-compat.js"></script>
+    <script defer src="/__/firebase/12.19.0/firebase-messaging-compat.js"></script>
+    <script defer src="/__/firebase/12.19.0/firebase-storage-compat.js"></script>
+    <script defer src="/__/firebase/12.19.0/firebase-analytics-compat.js"></script>
+    <script defer src="/__/firebase/12.19.0/firebase-remote-config-compat.js"></script>
+    <script defer src="/__/firebase/12.19.0/firebase-performance-compat.js"></script>
+    <!-- 
+      initialize the SDK after all desired features are loaded, set useEmulator to false
+      to avoid connecting the SDK to running emulators.
+    -->
+    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
 
-  <!-- Colyseus.js detects Buffer vs. Uint8Array via `typeof Buffer`; a fake Buffer
-       polyfill quebra o encoder (Buffer.prototype.utf8Write undefined). Deixamos
-       sem Buffer: o SDK usa Uint8Array + TextEncoder.encodeInto no browser. -->
-  <script>
-    window.global = window;
-    window.process = window.process || { env: {} };
-  </script>
-
-  <!-- Colyseus SDK client (Browser Build) -->
-  <script src="https://unpkg.com/@colyseus/sdk@0.18.2/dist/colyseus.js"></script>
-</head>
-<body>
-
-  <!-- MODAL DE LOGIN COM O GOOGLE -->
-  <div id="login-modal" class="fn-modal-overlay" style="display: flex; z-index: 9999; position: fixed; inset: 0; justify-content: center; align-items: center; background: radial-gradient(circle at 75% 15%, rgba(56, 189, 248, 0.15), transparent 45%), radial-gradient(circle at 20% 40%, rgba(99, 102, 241, 0.15), transparent 50%), radial-gradient(circle at 50% 85%, rgba(14, 116, 144, 0.18), transparent 60%), linear-gradient(180deg, #060b17 0%, #0c1427 45%, #050914 100%);">
-    <div class="fn-hub-backdrop">
-      <div class="fn-hub-moon"></div>
-      <div class="fn-hub-stars"></div>
-      <div class="fn-hub-glow"></div>
+    <style media="screen">
+      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
+      #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px; border-radius: 3px; }
+      #message h2 { color: #ffa100; font-weight: bold; font-size: 16px; margin: 0 0 8px; }
+      #message h1 { font-size: 22px; font-weight: 300; color: rgba(0,0,0,0.6); margin: 0 0 16px;}
+      #message p { line-height: 140%; margin: 16px 0 24px; font-size: 14px; }
+      #message a { display: block; text-align: center; background: #039be5; text-transform: uppercase; text-decoration: none; color: white; padding: 16px; border-radius: 4px; }
+      #message, #message a { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
+      #load { color: rgba(0,0,0,0.4); text-align: center; font-size: 13px; }
+      @media (max-width: 600px) {
+        body, #message { margin-top: 0; background: white; box-shadow: none; }
+        body { border-top: 16px solid #ffa100; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="message">
+      <h2>Welcome</h2>
+      <h1>Firebase Hosting Setup Complete</h1>
+      <p>You're seeing this because you've successfully setup Firebase Hosting. Now it's time to go build something extraordinary!</p>
+      <a target="_blank" href="https://firebase.google.com/docs/hosting/">Open Hosting Documentation</a>
     </div>
-    <div class="fn-modal" style="text-align: center; max-width: 400px; position: relative; z-index: 10;">
-      <h2 class="fn-title">BEM-VINDO AO VIRTUAL BOXING</h2>
-      <p>Faça login para salvar suas moedas, ranking e progresso de lutador.</p>
-      <button id="btn-google-login" class="fn-btn-primary" style="margin-top:20px; width:100%; display:flex; align-items:center; justify-content:center; gap:10px;">
-        <svg style="width:24px;height:24px" viewBox="0 0 24 24">
-          <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-          <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-          <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-          <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-        </svg>
-        ENTRAR COM O GOOGLE
-      </button>
-      <button id="btn-guest-login" class="fn-btn-secondary" style="margin-top:12px; width:100%; display:flex; align-items:center; justify-content:center; gap:8px;">
-        JOGAR COMO CONVIDADO
-      </button>
-    </div>
-  </div>
+    <p id="load">Firebase SDK Loading&hellip;</p>
 
-  <!-- TELA INICIAL (FIGHTING LOBBY - ARENA DE BOXE) -->
-  <div id="start-screen" class="fn-hub" style="display: none;">
-    <!-- Efeitos Atmosféricos de Arena e Ringue -->
-    <div class="fn-hub-backdrop">
-      <div class="fn-arena-spotlight fn-spotlight-left"></div>
-      <div class="fn-arena-spotlight fn-spotlight-right"></div>
-      <div class="fn-arena-canvas-grid"></div>
-      <div class="fn-arena-ropes"></div>
-    </div>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const loadEl = document.querySelector('#load');
+        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+        // // The Firebase SDK is initialized and available here!
+        //
+        // firebase.auth().onAuthStateChanged(user => { });
+        // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
+        // firebase.firestore().doc('/foo/bar').get().then(() => { });
+        // firebase.functions().httpsCallable('yourFunction')().then(() => { });
+        // firebase.messaging().requestPermission().then(() => { });
+        // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
+        // firebase.analytics(); // call to activate
+        // firebase.analytics().logEvent('tutorial_completed');
+        // firebase.performance(); // call to activate
+        //
+        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
 
-    <!-- 1. BARRA SUPERIOR (NAVBAR DO RINGUE) -->
-    <header class="fn-header">
-      <div class="fn-header-left">
-        <div class="fn-brand-logo">
-          <span class="fn-brand-icon">🥊</span>
-          <div class="fn-brand-text">
-            <span class="fn-brand-title">VIRTUAL BOXING</span>
-            <span class="fn-brand-sub">CHAMPIONSHIP</span>
-          </div>
-        </div>
-
-        <nav class="fn-tabs">
-          <button class="fn-tab active" data-tab="play">COMBATE</button>
-          <button class="fn-tab" data-tab="locker">VESTIÁRIO</button>
-          <button class="fn-tab" data-tab="career">CARREIRA</button>
-          <button class="fn-tab" data-tab="ranking">RANKING</button>
-          <button class="fn-tab" data-tab="rules">REGRAS</button>
-        </nav>
-      </div>
-
-      <div class="fn-header-right">
-        <div class="fn-currency-pill" title="Moedas do Lutador">
-          <span class="fn-coin-icon">🪙</span>
-          <span class="fn-coin-val">0</span>
-        </div>
-        <div class="fn-profile-pill">
-          <div class="fn-avatar">
-            <span class="fn-online-dot"></span>
-            🥊
-          </div>
-          <div class="fn-profile-info">
-            <span class="fn-profile-name fn-player-name">Lutador</span>
-            <span class="fn-profile-lvl">LVL 1</span>
-          </div>
-          <button id="btn-logout" class="fn-logout-btn" title="Desconectar">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
-              <path d="M16 13v-2H7V8l-5 4 5 4v-3h9zM20 3H9c-1.1 0-2 .9-2 2v4h2V5h11v14H9v-4H7v4c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>
-            </svg>
-          </button>
-        </div>
-      </div>
-    </header>
-
-    <!-- CONTEÚDO DA ABA: COMBATE (LOBBY PRINCIPAL) -->
-    <div id="tab-play" class="fn-tab-content active">
-      
-      <!-- Ficha Técnica do Lutador (Lado Esquerdo) -->
-      <div class="fn-fighter-dossier">
-        <div class="fn-dossier-header">
-          <span class="fn-dossier-tag">CARTEL DO LUTADOR</span>
-          <span class="fn-dossier-class">PESO-PESADO</span>
-        </div>
-        <div class="fn-dossier-body">
-          <div class="fn-dossier-row">
-            <span class="fn-dossier-lbl">VITÓRIAS</span>
-            <span class="fn-dossier-val text-green" id="dossier-wins">0</span>
-          </div>
-          <div class="fn-dossier-row">
-            <span class="fn-dossier-lbl">DERROTAS</span>
-            <span class="fn-dossier-val text-red" id="dossier-losses">0</span>
-          </div>
-          <div class="fn-dossier-row">
-            <span class="fn-dossier-lbl">TAXA DE VITÓRIA</span>
-            <span class="fn-dossier-val text-gold" id="dossier-rate">0%</span>
-          </div>
-          <div class="fn-dossier-row">
-            <span class="fn-dossier-lbl">LUVA EQUIPADA</span>
-            <span class="fn-dossier-val text-cyan" id="dossier-glove">NEON CIANO</span>
-          </div>
-          <div class="fn-dossier-row">
-            <span class="fn-dossier-lbl">SHORTS EQUIPADO</span>
-            <span class="fn-dossier-val text-red" id="dossier-shorts">RUBRO CLÁSSICO</span>
-          </div>
-        </div>
-        <div class="fn-dossier-footer">
-          <span class="fn-sensor-status">
-            <span class="fn-sensor-dot"></span> MEDIAPIPE IA ATIVO
-          </span>
-        </div>
-      </div>
-
-      <!-- Palco Central do Ringue com Foco no Lutador -->
-      <div class="fn-stage-container">
-        <!-- Tag de Combate do Jogador -->
-        <div class="fn-player-tag">
-          <div class="fn-player-tag-crown">👑</div>
-          <div class="fn-player-tag-info">
-            <span class="fn-player-name">Lutador</span>
-            <span class="fn-player-status fn-status-ready">PRONTO PARA O COMBATE</span>
-          </div>
-        </div>
-
-        <!-- Tablado Central do Ringue -->
-        <div class="fn-ring-stage">
-          <div class="fn-hero-avatar">
-            <div class="fn-avatar-glow"></div>
-            <div class="fn-avatar-character">🥊</div>
-          </div>
-          <div class="fn-ring-canvas-platform">
-            <div class="fn-ring-center-emblem">BOXING ARENA</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Centro de Controle de Combate (Inferior) -->
-      <div class="fn-fight-control-center">
-        <!-- Seletor dos 3 Modos Reais -->
-        <div class="fn-mode-cards-row">
-          <div class="fn-discover-card active" data-mode="training" id="btn-start-training">
-            <div class="fn-card-banner">
-              <span class="fn-card-icon">🥊</span>
-              <span class="fn-card-tag tag-training">CASUAL</span>
-            </div>
-            <div class="fn-card-info">
-              <div class="fn-card-title">Treinamento Solo</div>
-              <div class="fn-card-desc">Sparring com IA • 2 Rounds para treino</div>
-            </div>
-          </div>
-
-          <div class="fn-discover-card" data-mode="ranked" id="btn-ranked">
-            <div class="fn-card-banner banner-ranked">
-              <span class="fn-card-icon">🏆</span>
-              <span class="fn-card-tag tag-ranked">COMPETITIVO</span>
-            </div>
-            <div class="fn-card-info">
-              <div class="fn-card-title">Partida Rankeada</div>
-              <div class="fn-card-desc">Valendo troféus e moedas</div>
-            </div>
-          </div>
-
-          <div class="fn-discover-card" data-mode="pvp" id="btn-1v1">
-            <div class="fn-card-banner banner-pvp">
-              <span class="fn-card-icon">👥</span>
-              <span class="fn-card-tag tag-pvp">SALA PRIVADA</span>
-            </div>
-            <div class="fn-card-info">
-              <div class="fn-card-title">Modo 1x1 (Amigo)</div>
-              <div class="fn-card-desc">Crie ou entre com código exclusivo</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Barra de Ação Principal e Calibração -->
-        <div class="fn-action-bar">
-          <button id="btn-main-play" class="fn-btn-fight">
-            <span class="fn-btn-play-icon">🥊</span>
-            <span class="fn-btn-play-text" id="fn-selected-mode-title">INICIAR SPARRING</span>
-          </button>
-          
-          <button class="fn-btn-util" id="btn-quick-calibrate" title="Calibrar Câmera e Distância [C]">
-            <span class="fn-key-cap">C</span>
-            <span>CALIBRAR CÂMERA</span>
-          </button>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- CONTEÚDO DA ABA: VESTIÁRIO -->
-    <div id="tab-locker" class="fn-tab-content">
-      <div class="fn-panel-window">
-        <div class="fn-panel-header">
-          <h2>VESTIÁRIO DO BOXEADOR</h2>
-          <p>Personalize o visual 3D do seu lutador</p>
-        </div>
-        <h3 style="color: #fff; margin-bottom: 10px; font-size: 14px; letter-spacing: 1px;">LUVAS</h3>
-        <div class="fn-locker-grid">
-          <div class="fn-locker-item active" data-glove="cyan">
-            <div class="fn-locker-color-preview" style="background: linear-gradient(135deg, #06b6d4, #0284c7);"></div>
-            <div class="fn-locker-name">Neon Ciano</div>
-            <div class="fn-locker-rarity rare">RARO</div>
-          </div>
-          <div class="fn-locker-item" data-glove="gold">
-            <div class="fn-locker-color-preview" style="background: linear-gradient(135deg, #f59e0b, #d97706);"></div>
-            <div class="fn-locker-name">Ouro Campeão</div>
-            <div class="fn-locker-rarity legendary">LENDÁRIO</div>
-          </div>
-          <div class="fn-locker-item" data-glove="red">
-            <div class="fn-locker-color-preview" style="background: linear-gradient(135deg, #ef4444, #b91c1c);"></div>
-            <div class="fn-locker-name">Rubro Clássico</div>
-            <div class="fn-locker-rarity epic">ÉPICO</div>
-          </div>
-          <div class="fn-locker-item" data-glove="dark">
-            <div class="fn-locker-color-preview" style="background: linear-gradient(135deg, #475569, #0f172a);"></div>
-            <div class="fn-locker-name">Stealth Tático</div>
-            <div class="fn-locker-rarity uncommon">INCOMUM</div>
-          </div>
-        </div>
-        <h3 style="color: #fff; margin: 20px 0 10px 0; font-size: 14px; letter-spacing: 1px;">SHORTS</h3>
-        <div class="fn-locker-grid fn-shorts-grid">
-          <div class="fn-locker-item shorts-item active" data-shorts="red">
-            <div class="fn-locker-color-preview" style="background: linear-gradient(135deg, #ef4444, #b91c1c);"></div>
-            <div class="fn-locker-name">Rubro Clássico</div>
-            <div class="fn-locker-rarity epic">ÉPICO</div>
-          </div>
-          <div class="fn-locker-item shorts-item" data-shorts="blue">
-            <div class="fn-locker-color-preview" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);"></div>
-            <div class="fn-locker-name">Azul Profundo</div>
-            <div class="fn-locker-rarity rare">RARO</div>
-          </div>
-          <div class="fn-locker-item shorts-item" data-shorts="gold">
-            <div class="fn-locker-color-preview" style="background: linear-gradient(135deg, #f59e0b, #d97706);"></div>
-            <div class="fn-locker-name">Ouro Campeão</div>
-            <div class="fn-locker-rarity legendary">LENDÁRIO</div>
-          </div>
-          <div class="fn-locker-item shorts-item" data-shorts="dark">
-            <div class="fn-locker-color-preview" style="background: linear-gradient(135deg, #475569, #0f172a);"></div>
-            <div class="fn-locker-name">Stealth Tático</div>
-            <div class="fn-locker-rarity uncommon">INCOMUM</div>
-          </div>
-        </div>
-        <button class="fn-btn-secondary" onclick="switchFnTab('play')" style="margin-top: 20px;">VOLTAR AO COMBATE</button>
-      </div>
-    </div>
-
-    <!-- CONTEÚDO DA ABA: CARREIRA (ESTATÍSTICAS REAIS) -->
-    <div id="tab-career" class="fn-tab-content">
-      <div class="fn-panel-window">
-        <div class="fn-panel-header">
-          <h2>HISTÓRICO DE CARREIRA</h2>
-          <p>Desempenho e estatísticas oficiais das suas lutas</p>
-        </div>
-        <div class="fn-stats-grid">
-          <div class="fn-stat-card">
-            <div class="stat-num" id="career-fights">0</div>
-            <div class="stat-lbl">Lutas Totais</div>
-          </div>
-          <div class="fn-stat-card stat-win">
-            <div class="stat-num text-green" id="career-wins">0</div>
-            <div class="stat-lbl">Vitórias</div>
-          </div>
-          <div class="fn-stat-card stat-loss">
-            <div class="stat-num text-red" id="career-losses">0</div>
-            <div class="stat-lbl">Derrotas</div>
-          </div>
-          <div class="fn-stat-card stat-ko">
-            <div class="stat-num text-blue" id="career-kos">0</div>
-            <div class="stat-lbl">Nocautes (KO)</div>
-          </div>
-          <div class="fn-stat-card stat-highlight">
-            <div class="stat-num text-gold" id="career-rank">#--</div>
-            <div class="stat-lbl">Troféus Conquistados</div>
-          </div>
-          <div class="fn-stat-card stat-highlight">
-            <div class="stat-num text-gold" id="career-rate">0.0%</div>
-            <div class="stat-lbl">Taxa de Vitória</div>
-          </div>
-        </div>
-        <button class="fn-btn-secondary" onclick="switchFnTab('play')">VOLTAR AO COMBATE</button>
-      </div>
-    </div>
-
-    <!-- CONTEÚDO DA ABA: RANKING GLOBAL (LEADERBOARD OFICIAL FIRESTORE) -->
-    <div id="tab-ranking" class="fn-tab-content">
-      <div class="fn-panel-window fn-ranking-window">
-        <div class="fn-panel-header" style="display: flex; justify-content: space-between; align-items: flex-end;">
-          <div>
-            <span class="fn-modal-badge badge-ranked-gold">CIRCUITO MUNDIAL • TEMPORADA 1</span>
-            <h2>LEADERBOARD OFICIAL</h2>
-            <p>Classificação mundial dos melhores boxeadores do Virtual Boxing</p>
-          </div>
-          <button id="btn-refresh-ranking" class="fn-btn-secondary" style="padding: 8px 16px; font-size: 12px; display: flex; align-items: center; gap: 6px;">
-            <span>🔄</span> ATUALIZAR
-          </button>
-        </div>
-
-        <div class="fn-ranking-container">
-          <div class="fn-ranking-table-header">
-            <span class="rank-col-pos">POS</span>
-            <span class="rank-col-player">BOXEADOR</span>
-            <span class="rank-col-record">CARTEL (V - D)</span>
-            <span class="rank-col-rate">TAXA</span>
-            <span class="rank-col-elo">TROFÉUS</span>
-          </div>
-          
-          <div id="fn-ranking-list" class="fn-ranking-list">
-            <div class="fn-ranking-loading">Carregando classificação do servidor...</div>
-          </div>
-
-          <!-- Card de Posição do Jogador Logado -->
-          <div id="fn-my-ranking-card" class="fn-my-ranking-bar">
-            <div class="my-rank-pos" id="my-rank-position">#--</div>
-            <div class="my-rank-avatar" id="my-rank-avatar">🥊</div>
-            <div class="my-rank-info">
-              <span class="my-rank-name fn-player-name">Você</span>
-              <span class="my-rank-sub" id="my-rank-status">Sua Posição Oficial</span>
-            </div>
-            <div class="my-rank-record" id="my-rank-record">0V - 0D</div>
-            <div class="my-rank-rate text-gold" id="my-rank-rate">0.0%</div>
-            <div class="my-rank-elo" id="my-rank-elo">0 TROFÉUS</div>
-          </div>
-        </div>
-
-        <button class="fn-btn-secondary" onclick="switchFnTab('play')" style="margin-top: 18px;">VOLTAR AO COMBATE</button>
-      </div>
-    </div>
-
-    <!-- CONTEÚDO DA ABA: REGRAS DO BOXE -->
-    <div id="tab-rules" class="fn-tab-content">
-      <div class="fn-panel-window">
-        <div class="fn-panel-header">
-          <h2>MANUAL DO BOXE VIRTUAL</h2>
-          <p>Fundamentos técnicos para vencer no ringue</p>
-        </div>
-        <div class="fn-rules-grid">
-          <div class="fn-rule-box">
-            <div class="rule-icon">🥊</div>
-            <div class="rule-title">Golpes Válidos</div>
-            <p>Jabs, Diretos e Cruzados pontuam dano no adversário. Mantenha os punhos visíveis para a câmera.</p>
-          </div>
-          <div class="fn-rule-box">
-            <div class="rule-icon">🛡</div>
-            <div class="rule-title">Guarda Alta</div>
-            <p>Posicione as duas mãos próximas ao queixo para bloquear os ataques frontais recebidos.</p>
-          </div>
-          <div class="fn-rule-box">
-            <div class="rule-icon">🔄</div>
-            <div class="rule-title">Esquiva Dinâmica</div>
-            <p>Incline a cabeça e ombros para a esquerda ou direita para desviar de golpes pesados.</p>
-          </div>
-          <div class="fn-rule-box">
-            <div class="rule-icon">⏱</div>
-            <div class="rule-title">Rounds e Pontuação</div>
-            <p>Cada round dura 30 segundos. Quem causar mais dano ou nocautear o adversário vence.</p>
-          </div>
-        </div>
-        <button class="fn-btn-secondary" onclick="switchFnTab('play')">VOLTAR AO COMBATE</button>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- HUD DE COMBATE PROFISSIONAL (ESTILO ESPORTS / JOGOS DE LUTA) -->
-  <div class="fight-hud health-bars">
-    <!-- Lado do Jogador (Esquerda) -->
-    <div class="hud-fighter-side hud-player-side">
-      <div class="hud-fighter-card">
-        <div class="hud-fighter-avatar">🥊</div>
-        <div class="hud-fighter-meta">
-          <div class="hud-fighter-name">VOCÊ <span class="hud-badge-lvl">LVL 1</span></div>
-          <div class="hud-fighter-status">DESAFIANTE</div>
-        </div>
-        <div class="hud-hp-val" id="player-health-text">100%</div>
-      </div>
-      
-      <div class="health-bg hud-bar-container">
-        <div class="hud-health-ghost" id="player-health-ghost" style="width: 100%;"></div>
-        <div class="health-fill hud-health-player" id="player-health" style="width: 100%;"></div>
-      </div>
-    </div>
-
-    <!-- Centro: Cronômetro, Round e Telemetria -->
-    <div class="hud-center-shield match-info">
-      <div class="hud-round-pill">
-        <span class="hud-round-dot active"></span>
-        <span id="round-display">ROUND 1/2</span>
-        <span class="hud-round-dot"></span>
-      </div>
-      <div class="hud-timer-badge">
-        <span id="timer-display">30</span>
-      </div>
-      <div class="hud-telemetry-badge">
-        <span id="distance-info">⚡ COMBATE INICIADO</span>
-      </div>
-    </div>
-
-    <!-- Lado do Oponente (Direita) -->
-    <div class="hud-fighter-side hud-opponent-side">
-      <div class="hud-fighter-card">
-        <div class="hud-hp-val" id="opponent-health-text">100%</div>
-        <div class="hud-fighter-meta text-right">
-          <div class="hud-fighter-name">OPONENTE <span class="hud-badge-boss">IA ELITE</span></div>
-          <div class="hud-fighter-status">DEFENSOR</div>
-        </div>
-        <div class="hud-fighter-avatar opp-avatar">🥊</div>
-      </div>
-
-      <div class="health-bg hud-bar-container">
-        <div class="hud-health-ghost" id="opponent-health-ghost" style="width: 100%;"></div>
-        <div class="health-fill hud-health-opp" id="opponent-health" style="width: 100%;"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL PVP 1x1 (PADRÃO FORTNITE) -->
-  <div id="pvp-modal" class="modal-overlay hidden">
-    <div class="modal-content fn-modal-window">
-      <button class="fn-modal-close-btn" id="btn-close-pvp-x" title="Fechar">✕</button>
-      
-      <div class="fn-modal-header">
-        <span class="fn-modal-badge">SALA MULTIPLAYER PRIVADA</span>
-        <h2>MODO 1x1 ENTRE AMIGOS</h2>
-        <p>Desafie um oponente em tempo real. Crie uma sala exclusiva ou entre com o código compartilhado.</p>
-      </div>
-      
-      <div class="pvp-actions">
-        <!-- Criar Sala -->
-        <div class="pvp-card pvp-create">
-          <div class="pvp-card-header">
-            <span class="pvp-card-icon">👑</span>
-            <span class="pvp-card-title">CRIAR NOVA SALA</span>
-          </div>
-          <button id="btn-create-room" class="fn-btn-primary" style="width: 100%;">GERAR CÓDIGO DA SALA</button>
-          
-          <div id="pvp-code-display" class="hidden">
-            <span class="pvp-code-label">SEU CÓDIGO DE ACESSO:</span>
-            <strong id="room-code">---</strong>
-            <p class="pvp-code-hint">Compartilhe este código com seu amigo para ele se conectar!</p>
-            <button id="btn-start-pvp-host" class="fn-btn-primary btn-gold" style="width: 100%; margin-top: 10px;">INICIAR LUTA COMO ANFITRIÃO</button>
-          </div>
-        </div>
-        
-        <div class="pvp-divider"><span>OU</span></div>
-        
-        <!-- Entrar na Sala -->
-        <div class="pvp-card pvp-join">
-          <div class="pvp-card-header">
-            <span class="pvp-card-icon">⚡</span>
-            <span class="pvp-card-title">ENTRAR COM CÓDIGO</span>
-          </div>
-          <input type="text" id="pvp-code-input" placeholder="EX: A7X-99" maxlength="8">
-          <button id="btn-join-room" class="fn-btn-primary btn-cyan" style="width: 100%; margin-top: 12px;">CONECTAR E LUTAR</button>
-        </div>
-      </div>
-      
-      <div class="fn-modal-footer">
-        <button id="btn-close-pvp" class="fn-btn-secondary">VOLTAR AO LOBBY</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL DE MATCHMAKING COMPETITIVO / RANQUEADO ONLINE -->
-  <div id="ranked-matchmaking-modal" class="modal-overlay hidden">
-    <div class="modal-content fn-modal-window ranked-matchmaking-window">
-      <button class="fn-modal-close-btn" id="btn-cancel-ranked-x" title="Cancelar">✕</button>
-      
-      <div class="fn-modal-header">
-        <span class="fn-modal-badge badge-ranked-gold">MATCHMAKING COMPETITIVO</span>
-        <h2 id="ranked-match-status-title">BUSCANDO ADVERSÁRIO ONLINE...</h2>
-        <p id="ranked-match-status-desc">Procurando um oponente compatível com seu nível e ranking de troféus.</p>
-      </div>
-
-      <!-- Radar Animado de Busca de Oponentes -->
-      <div class="ranked-radar-container" id="ranked-radar-container">
-        <div class="ranked-radar-circle circle-1"></div>
-        <div class="ranked-radar-circle circle-2"></div>
-        <div class="ranked-radar-circle circle-3"></div>
-        <div class="ranked-radar-sweep"></div>
-        <div class="ranked-radar-icon">🥊</div>
-      </div>
-
-      <!-- Informações da Fila -->
-      <div class="ranked-queue-info" id="ranked-queue-info">
-        <div class="queue-stat">
-          <span class="queue-lbl">TEMPO NA FILA</span>
-          <span class="queue-val" id="ranked-queue-timer">00:00</span>
-        </div>
-        <div class="queue-stat">
-          <span class="queue-lbl">SEUS TROFÉUS</span>
-          <span class="queue-val text-gold" id="ranked-queue-elo">0 TROFÉUS</span>
-        </div>
-        <div class="queue-stat">
-          <span class="queue-lbl">ARENA COMPETITIVA</span>
-          <span class="queue-val text-cyan" id="ranked-queue-status">PROCURANDO...</span>
-        </div>
-      </div>
-
-      <!-- Card Revelado Quando o Oponente for Encontrado -->
-      <div id="ranked-found-card" class="ranked-found-card hidden">
-        <div class="found-versus-badge">COMBATE ENCONTRADO!</div>
-        <div class="found-fighters-row">
-          <div class="found-fighter me">
-            <div class="found-avatar" id="found-my-avatar">🥊</div>
-            <span class="found-name fn-player-name">Você</span>
-            <span class="found-elo text-gold" id="found-my-elo">0 TROFÉUS</span>
-          </div>
-          <div class="found-vs-divider">VS</div>
-          <div class="found-fighter opp">
-            <div class="found-avatar" id="found-opp-avatar">🥊</div>
-            <span class="found-name text-cyan" id="found-opp-name">Oponente</span>
-            <span class="found-elo text-gold" id="found-opp-elo">0 TROFÉUS</span>
-          </div>
-        </div>
-        <div class="found-countdown" id="found-countdown-text">Iniciando combate em 3s...</div>
-      </div>
-
-      <div class="fn-modal-footer">
-        <button id="btn-cancel-ranked-match" class="fn-btn-secondary">CANCELAR BUSCA</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL DE CALIBRAÇÃO DE CÂMERA (PADRÃO FORTNITE) -->
-  <div id="calibration-modal" class="modal-overlay hidden">
-    <div class="modal-content fn-modal-window">
-      <div class="fn-modal-header">
-        <span class="fn-modal-badge">SISTEMA DE VISÃO CORPORAL</span>
-        <h2>CALIBRAÇÃO DA CÂMERA</h2>
-        <p id="calibration-instructions">Aguardando câmera... Posicione-se de modo que você apareça da cintura para cima, incluindo a cabeça e os punhos.</p>
-      </div>
-
-      <div id="calibration-preview-container">
-        <!-- Retículo de calibração HUD -->
-        <div class="calib-reticle-top-left"></div>
-        <div class="calib-reticle-top-right"></div>
-        <div class="calib-reticle-bottom-left"></div>
-        <div class="calib-reticle-bottom-right"></div>
-        <div id="calibration-countdown" style="display: none;">5</div>
-      </div>
-
-      <div class="fn-modal-footer" style="display: flex; justify-content: center; gap: 12px;">
-        <button id="btn-cancel-calibration" class="fn-btn-secondary">CANCELAR E VOLTAR</button>
-        <button id="btn-skip-calibration" class="fn-btn-primary btn-gold">INICIAR COMBATE AGORA</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL DE PÓS-PARTIDA / RESULTADO DO COMBATE (PADRÃO FORTNITE) -->
-  <div id="post-match-modal" class="modal-overlay hidden">
-    <div class="modal-content fn-modal-window fn-post-match-window">
-      <!-- Banner de Cabeçalho / Vitória ou Derrota -->
-      <div class="fn-post-match-banner" id="post-match-banner">
-        <span class="fn-modal-badge" id="post-match-badge">FIM DE COMBATE • MODO RANKEADO</span>
-        <h1 id="post-match-title" class="fn-victory-title">VITÓRIA MAGISTRAL</h1>
-        <p id="post-match-subtitle" class="fn-victory-subtitle">Nocaute Técnico • Round 1 • Tempo: 0:24</p>
-      </div>
-
-      <!-- Card do Vencedor e Subida no Ranking -->
-      <div class="fn-post-ranking-card">
-        <div class="fn-ranking-fighter-col">
-          <div class="fn-winner-crown" id="post-match-crown">👑</div>
-          <div class="fn-winner-avatar" id="post-match-avatar">🥊</div>
-          <div class="fn-winner-info">
-            <span class="fn-winner-name" id="post-match-winner-name">BoxerChampion</span>
-            <span class="fn-winner-tag" id="post-match-winner-tag">CAMPEÃO DO RINGUE</span>
-          </div>
-        </div>
-
-        <div class="fn-ranking-progression-col">
-          <div class="fn-ranking-climb-header">
-            <span class="fn-ranking-climb-label">RANKING GLOBAL</span>
-            <span class="fn-ranking-climb-badge" id="post-match-rank-badge">🏆 +1 TROFÉU</span>
-          </div>
-          
-          <div class="fn-rank-shift-display">
-            <div class="fn-rank-prev" id="post-match-rank-prev">#--</div>
-            <div class="fn-rank-arrow">➜</div>
-            <div class="fn-rank-curr" id="post-match-rank-curr">#--</div>
-          </div>
-
-          <div class="fn-ranking-pills-row">
-            <div class="fn-reward-pill fn-pill-elo" id="post-match-elo-pill">
-              <span class="pill-icon">🏆</span>
-              <span class="pill-val" id="post-match-elo-val">+1 TROFÉU</span>
-            </div>
-            <div class="fn-reward-pill fn-pill-coins" id="post-match-coins-pill">
-              <span class="pill-icon">🪙</span>
-              <span class="pill-val" id="post-match-coins-val">+50 MOEDAS</span>
-            </div>
-            <div class="fn-reward-pill fn-pill-xp" id="post-match-xp-pill">
-              <span class="pill-icon">⭐</span>
-              <span class="pill-val" id="post-match-xp-val">+350 XP</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Estatísticas Detalhadas da Partida -->
-      <div class="fn-post-stats-section">
-        <div class="fn-post-stats-header">ESTATÍSTICAS DA LUTA</div>
-        <div class="fn-stats-grid fn-post-stats-grid">
-          <div class="fn-stat-card">
-            <div class="stat-num text-blue" id="stat-punches-landed">0 / 0</div>
-            <div class="stat-lbl">Golpes Conectados</div>
-          </div>
-          <div class="fn-stat-card">
-            <div class="stat-num text-gold" id="stat-accuracy">0%</div>
-            <div class="stat-lbl">Precisão</div>
-          </div>
-          <div class="fn-stat-card">
-            <div class="stat-num text-gold" id="stat-headshots">0</div>
-            <div class="stat-lbl">Golpes na Cabeça</div>
-          </div>
-          <div class="fn-stat-card">
-            <div class="stat-num text-green" id="stat-damage-dealt">0 HP</div>
-            <div class="stat-lbl">Dano Causado</div>
-          </div>
-          <div class="fn-stat-card">
-            <div class="stat-num text-red" id="stat-damage-taken">0 HP</div>
-            <div class="stat-lbl">Dano Sofrido</div>
-          </div>
-          <div class="fn-stat-card">
-            <div class="stat-num" id="stat-fight-time">0:00</div>
-            <div class="stat-lbl">Tempo de Combate</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Botões de Ação do Fim de Jogo -->
-      <div class="fn-post-match-actions">
-        <button id="btn-post-match-lobby" class="fn-btn-secondary btn-post-lobby">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-          </svg>
-          VOLTAR AO LOBBY
-        </button>
-        <button id="btn-post-match-rematch" class="fn-btn-primary btn-gold btn-post-rematch">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-            <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
-          </svg>
-          LUTAR NOVAMENTE
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div class="cam-preview">
-    <video id="webcam" playsinline style="display: none;"></video>
-    <canvas id="cam-canvas" width="256" height="160"></canvas>
-    
-    <div class="cam-picker">
-      <select id="camera-select" title="Escolher câmera"></select>
-    </div>
-  </div>
-
-  <div id="crosshair"></div>
-  <canvas id="game-canvas"></canvas>
-
-  <script type="module" src="auth.js"></script>
-  <script src="game.js"></script>
-</body>
+        try {
+          let app = firebase.app();
+          let features = [
+            'auth', 
+            'database', 
+            'firestore',
+            'functions',
+            'messaging', 
+            'storage', 
+            'analytics', 
+            'remoteConfig',
+            'performance',
+          ].filter(feature => typeof app[feature] === 'function');
+          loadEl.textContent = `Firebase SDK loaded with ${features.join(', ')}`;
+        } catch (e) {
+          console.error(e);
+          loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
+        }
+      });
+    </script>
+  </body>
 </html>
