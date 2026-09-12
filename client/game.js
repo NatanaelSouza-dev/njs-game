@@ -4,9 +4,7 @@ window.colyseusClient = null;
 window.matchRoom = null;
 try {
   if (typeof Colyseus !== 'undefined' && typeof Colyseus.Client === 'function') {
-    const wsProto = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-    const wsHost = window.location.hostname || 'localhost';
-    window.colyseusClient = new Colyseus.Client(`${wsProto}${wsHost}:2567`);
+    window.colyseusClient = new Colyseus.Client("wss://njs-game.onrender.com");
   }
 } catch (e) {
   console.warn('Colyseus Client init error:', e);
@@ -2084,9 +2082,7 @@ try {
       if (!window.colyseusClient) {
         try {
           if (typeof Colyseus !== 'undefined' && typeof Colyseus.Client === 'function') {
-            const wsProto = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-            const wsHost = window.location.hostname || 'localhost';
-            window.colyseusClient = new Colyseus.Client(`${wsProto}${wsHost}:2567`);
+            window.colyseusClient = new Colyseus.Client("wss://njs-game.onrender.com");
           }
         } catch(e) {
           console.warn('Colyseus Client init error:', e);

@@ -81,6 +81,26 @@ class FightRoom extends Room {
       }
     });
 
+    // Chat de voz: relay de frames de áudio (Opus) entre os dois jogadores.
+    // Cada frame é encaminhado ao outro cliente sem passar por Schema/JSON.
+    this.onMessageBytes("voice", (client, bytes) => {
+      if (!bytes || bytes.byteLength === 0 || bytes.byteLength > 4096) return;
+      this.broadcastBytes("voice", Buffer.from(bytes), { except: client });
+    });
+
+    // Config inicial do decoder (OpusHead) enviada uma única vez antes do 1º frame
+    this.onMessage("voice_config", (client, data) => {
+      if (!data || typeof data.codec !== 'string') return;
+      if (data.numberOfChannels !== 1 && data.numberOfChannels !== 2) return;
+      if (typeof data.description !== 'string' && typeof data.description !== 'undefined') return;
+      this.broadcast("voice_config", {
+        codec: 'opus',
+        sampleRate: Number(data.sampleRate) || 48000,
+        numberOfChannels: data.numberOfChannels,
+        description: typeof data.description === 'string' ? data.description : null
+      }, { except: client });
+    });
+
     this.onMessage("hit_landed", (client, data) => {
       if (this.state.status !== "playing") return;
       if (!data || typeof data.targetId !== "string") return;

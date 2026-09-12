@@ -444,6 +444,20 @@
     </div>
   </div>
 
+  <!-- CHAT DE VOZ (1x1 / PvP) -->
+  <button id="btn-mic-toggle" class="mic-toggle mic-off" title="Ativar microfone de voz" style="display: none;">
+    <svg class="mic-ico" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5.27-3A5.27 5.27 0 0 1 6.73 12H4.9a7.1 7.1 0 0 0 6.1 6.96V22h2v-3.04A7.1 7.1 0 0 0 19.1 12z"/>
+    </svg>
+    <span class="mic-slash"></span>
+    <span class="mic-state-label">SEM VOZ</span>
+  </button>
+
+  <div id="opp-talking-indicator" class="talking-indicator" style="display: none;">
+    <span class="talking-pulse"></span>
+    OPONENTE FALANDO
+  </div>
+
   <!-- MODAL PVP 1x1 (PADRÃO FORTNITE) -->
   <div id="pvp-modal" class="modal-overlay hidden">
     <div class="modal-content fn-modal-window">

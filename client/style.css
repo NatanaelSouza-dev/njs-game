@@ -2563,3 +2563,112 @@ body {
       color: #fbbf24;
       letter-spacing: 1px;
     }
+
+    /* =========================================
+       CHAT DE VOZ (MIC TOGGLE + INDICADOR)
+       ========================================= */
+    .mic-toggle {
+      position: fixed;
+      left: 22px;
+      bottom: 22px;
+      z-index: 400;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 40px;
+      border: 2px solid rgba(255, 255, 255, 0.18);
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 6px 22px rgba(0, 0, 0, 0.7);
+      cursor: pointer;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      transition: all 0.18s ease;
+      user-select: none;
+    }
+    .mic-toggle:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 26px rgba(0, 0, 0, 0.8);
+    }
+    .mic-toggle .mic-ico {
+      width: 22px;
+      height: 22px;
+    }
+    .mic-state-label {
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: #94a3b8;
+    }
+    .mic-toggle.mic-on {
+      border-color: rgba(16, 185, 129, 0.7);
+      background: rgba(6, 44, 33, 0.92);
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.45), 0 6px 22px rgba(0, 0, 0, 0.7);
+    }
+    .mic-toggle.mic-on .mic-ico {
+      color: #10b981;
+    }
+    .mic-toggle.mic-on .mic-state-label {
+      color: #34d399;
+    }
+    .mic-toggle.mic-off {
+      border-color: rgba(239, 68, 68, 0.55);
+      background: rgba(46, 18, 22, 0.92);
+    }
+    .mic-toggle.mic-off .mic-ico {
+      color: #f87171;
+    }
+    .mic-toggle.mic-off .mic-state-label {
+      color: #fca5a5;
+    }
+    .mic-toggle .mic-slash {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      width: 26px;
+      height: 3px;
+      background: #ef4444;
+      transform: rotate(-45deg) translateY(-50%);
+      transform-origin: center;
+      border-radius: 2px;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+    .mic-toggle.mic-off .mic-slash {
+      opacity: 1;
+    }
+
+    .talking-indicator {
+      position: fixed;
+      top: 24%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 400;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 16px;
+      border-radius: 24px;
+      background: rgba(15, 23, 42, 0.82);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6), 0 0 14px rgba(56, 189, 248, 0.35);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #7dd3fc;
+      pointer-events: none;
+    }
+    .talking-pulse {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #38bdf8;
+      box-shadow: 0 0 10px #38bdf8;
+      animation: talking-blink 1s ease-in-out infinite;
+    }
+    @keyframes talking-blink {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(0.72); }
+    }
