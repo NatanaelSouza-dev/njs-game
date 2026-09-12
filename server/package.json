@@ -1,0 +1,23 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@colyseus/monitor": "^0.18.3",
+    "colyseus": "^0.18.5",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "firebase": "^10.14.1",
+    "firebase-admin": "^14.4.0",
+    "nanoid": "^3.3.7"
+  }
+}

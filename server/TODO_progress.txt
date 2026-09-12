@@ -1,0 +1,5 @@
+[x] Plano criado e validado
+[ ] Implementar UI de Login com Google na UI atual
+[ ] Configurar Firebase SDK
+[ ] Testar Login e leitura de stats do player
+[ ] Inicializar Servidor e Rooms Colyseus
